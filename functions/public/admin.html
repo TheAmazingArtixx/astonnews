@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administration — Aston News</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="logo-badge">ASTON<br>♪ NEWS</a>
+  <nav class="main-nav">
+    <a href="/">Accueil</a>
+    <a href="/journal.html">Journal</a>
+    <a href="/admin.html" class="active">Admin</a>
+  </nav>
+</header>
+
+<main>
+  <div id="login-view" class="login-card" hidden>
+    <h1>Connexion</h1>
+    <div class="field">
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" autocomplete="current-password">
+    </div>
+    <p class="error-text" id="login-error" hidden></p>
+    <button class="btn" id="login-btn" style="width:100%; justify-content:center;">Se connecter</button>
+  </div>
+
+  <div id="admin-view" class="admin-shell" hidden>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h1 style="margin:0;">Administration</h1>
+      <button class="btn secondary" id="logout-btn">Se déconnecter</button>
+    </div>
+
+    <div class="admin-tabs">
+      <button data-tab="articles" class="active">Articles</button>
+      <button data-tab="settings">Réglages radio</button>
+    </div>
+
+    <!-- Onglet Articles -->
+    <section id="tab-articles">
+      <div class="admin-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h2 style="margin:0; font-size:1.1rem;">Articles publiés</h2>
+          <button class="btn" id="new-article-btn">+ Nouvel article</button>
+        </div>
+        <div id="article-list"></div>
+      </div>
+
+      <div class="admin-card" id="editor-card" hidden>
+        <h2 id="editor-title" style="margin-top:0; font-size:1.1rem;">Nouvel article</h2>
+        <div class="field">
+          <label for="art-title">Titre</label>
+          <input type="text" id="art-title">
+        </div>
+        <div class="field">
+          <label for="art-excerpt">Résumé (affiché sur les vignettes)</label>
+          <textarea id="art-excerpt" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label for="art-cover">Image de couverture</label>
+          <input type="file" id="art-cover" accept="image/*">
+          <div id="cover-preview" style="margin-top:8px;"></div>
+          <p class="helper-text">Les images sont compressées et enregistrées directement dans la base de données. Préfère des photos légères (idéalement &lt; 500 Ko).</p>
+        </div>
+
+        <div class="field">
+          <label>Contenu de l'article</label>
+          <div id="blocks-container"></div>
+          <div class="add-block-row">
+            <button class="btn secondary" type="button" id="add-paragraph">+ Paragraphe</button>
+            <button class="btn secondary" type="button" id="add-heading">+ Sous-titre</button>
+            <button class="btn secondary" type="button" id="add-image">+ Image</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button class="btn" id="save-article-btn">Enregistrer</button>
+          <button class="btn secondary" id="cancel-edit-btn">Annuler</button>
+        </div>
+        <p class="error-text" id="editor-error" hidden></p>
+      </div>
+    </section>
+
+    <!-- Onglet Réglages -->
+    <section id="tab-settings" hidden>
+      <div class="admin-card">
+        <h2 style="margin-top:0; font-size:1.1rem;">Émission radio en bas de page</h2>
+        <div class="field">
+          <label for="show-name">Nom de l'émission affiché</label>
+          <input type="text" id="show-name" placeholder="Radio - 21h 23h avec Nyyxtra">
+        </div>
+        <div class="field">
+          <label for="stream-url">URL de la source du flux</label>
+          <input type="text" id="stream-url" placeholder="https://source.clgnelsonmandela.com/source">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="radio-enabled" style="width:auto; margin-right:8px;">Source active (la décocher coupe le direct si elle ne fonctionne pas)</label>
+        </div>
+        <button class="btn" id="save-settings-btn">Enregistrer les réglages</button>
+        <p class="error-text" id="settings-error" hidden></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

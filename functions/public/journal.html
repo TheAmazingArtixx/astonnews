@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal — Aston News</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Aller au contenu</a>
+
+<header class="site-header">
+  <a href="/" class="logo-badge">ASTON<br>♪ NEWS</a>
+  <nav class="main-nav">
+    <a href="/">Accueil</a>
+    <a href="/journal.html" class="active">Journal</a>
+    <a href="/admin.html">Admin</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="hero" style="padding-top:56px;">
+    <h1 style="font-size:2.4rem;">Le Journal</h1>
+    <p>Tous les articles publiés</p>
+    <hr>
+  </section>
+
+  <section class="grid-wrap">
+    <div class="article-grid" id="journal-grid"></div>
+  </section>
+</main>
+
+<footer class="site-footer">© Aston News</footer>
+
+<div id="radio-bar-mount"></div>
+
+<script src="/js/site.js"></script>
+<script src="/js/radio.js"></script>
+<script>loadArticles('journal-grid');</script>
+</body>
+</html>
