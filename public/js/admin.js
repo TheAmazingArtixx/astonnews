@@ -36,9 +36,9 @@ function parseTags(raw) { try { return JSON.parse(raw || '[]'); } catch { return
 
 // ---- Auth ----
 async function checkSession() {
-  const r = await fetch('/api/session');
-  const d = await r.json();
-  return d.authenticated === true;
+  const res = await fetch('/api/session');
+  const data = await res.json();
+  return data.authenticated === true;
 }
 async function login() {
   const pw = document.getElementById('password').value;
@@ -68,10 +68,16 @@ async function login() {
 }
 async function logout() {
   await fetch('/api/logout', { method: 'POST' });
-  showAdminView(false); showLoginView(true);
+  showAdminView(false);
+  showLoginView(true);
 }
-function showLoginView(s) { document.getElementById('login-view').hidden = !s; }
-function showAdminView(s) { document.getElementById('admin-view').hidden = !s; }
+
+function showLoginView(show) {
+  document.getElementById('login-view').hidden = !show;
+}
+function showAdminView(show) {
+  document.getElementById('admin-view').hidden = !show;
+}
 
 // ---- Tabs ----
 function setupTabs() {
