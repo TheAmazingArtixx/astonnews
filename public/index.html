@@ -3,39 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aston News — Journal & Web Radio</title>
+<title>Aston News — Journal & Web Radio
+Journal — Aston News</title>
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Aller au contenu</a>
-
 <header class="site-header">
-<a href="/"><img src="https://i.imgur.com/6pjRLfE.png" alt="Aston News" style="height:44px; border-radius:10px;"></a>
+  <a href="/" class="logo-wrap">
+    <img src="https://i.imgur.com/6pjRLfE.png" alt="Aston News" class="site-logo">
+  </a>
   <nav class="main-nav">
     <a href="/" class="active">Accueil</a>
     <a href="/journal.html">Journal</a>
     <a href="/admin.html">Admin</a>
   </nav>
 </header>
-
 <main id="main">
   <section class="hero">
+    <div class="hero-eyebrow">Journal · Web Radio</div>
     <h1>Aston News</h1>
-    <p>Journal — Web Radio</p>
-    <hr>
+    <p>L'actu et la radio, en un seul endroit.</p>
+    <div class="hero-divider"></div>
   </section>
-
   <section class="grid-wrap">
-    <div class="article-grid" id="home-grid"></div>
+    <div class="section-label">À la une</div>
+    <div class="article-grid" id="home-grid"><p class="empty-state">Chargement…</p></div>
   </section>
 </main>
-
 <footer class="site-footer">© Aston News</footer>
-
 <div id="radio-bar-mount"></div>
-
 <script src="/js/site.js"></script>
 <script src="/js/radio.js"></script>
-<script>loadArticles('home-grid', 4);</script>
-</body>
-</html>
+<script>loadArticles('home-grid', 5);</script>
+</body></html>
