@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aston News — Journal & Web Radio
-Journal — Aston News</title>
+<title>Aston News — Journal & Web Radio</title>
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -17,8 +16,10 @@ Journal — Aston News</title>
   <nav class="main-nav">
     <a href="/" class="active">Accueil</a>
     <a href="/journal.html">Journal</a>
+    <a href="/contact.html">Contact</a>
   </nav>
 </header>
+
 <main id="main">
   <section class="hero">
     <div class="hero-eyebrow">Journal · Web Radio</div>
@@ -26,14 +27,48 @@ Journal — Aston News</title>
     <p>L'actu et la radio, en un seul endroit.</p>
     <div class="hero-divider"></div>
   </section>
+
+  <!-- ÉQUIPE -->
+  <section class="team-section">
+    <div class="team-inner">
+      <div class="section-label">Notre équipe</div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-img-wrap">
+            <img src="https://i.imgur.com/UwAy5qy.png" alt="Herman Anthony">
+          </div>
+          <div class="team-name">HERMAN Anthony</div>
+          <div class="team-role">Co CEO · Webmaster</div>
+        </div>
+        <div class="team-card">
+          <div class="team-img-wrap">
+            <img src="https://i.imgur.com/6DSJdad.png" alt="Peres Thomas">
+          </div>
+          <div class="team-name">PERES Thomas</div>
+          <div class="team-role">CEO</div>
+        </div>
+                <div class="team-card">
+          <div class="team-img-wrap">
+            <img src="https://i.imgur.com/rEYpRc9.png" alt="MCCAIN Owen">
+          </div>
+          <div class="team-name">MCCAIN Owen</div>
+          <div class="team-role">Directeur Communication</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- À LA UNE -->
   <section class="grid-wrap">
     <div class="section-label">À la une</div>
     <div class="article-grid" id="home-grid"><p class="empty-state">Chargement…</p></div>
   </section>
 </main>
+
 <footer class="site-footer">© Aston News</footer>
 <div id="radio-bar-mount"></div>
 <script src="/js/site.js"></script>
 <script src="/js/radio.js"></script>
 <script>loadArticles('home-grid', 5);</script>
-</body></html>
+</body>
+</html>
