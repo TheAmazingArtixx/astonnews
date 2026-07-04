@@ -29,27 +29,22 @@ function parseTags(raw) {
 
 function tagsHtml(tags) {
   if (!tags || !tags.length) return '';
-  return tags.map(t =>
-    `<span class="article-tag">${escapeHtml(t)}</span>`
-  ).join('');
+  return tags.map(t => `<span class="article-tag">${escapeHtml(t)}</span>`).join('');
 }
 
+// ---- Cartes grille (page d'accueil) ----
 function articleCardHtml(article, featured = false) {
   const gradient = GRADIENTS[article.gradient] || GRADIENTS.g1;
   const blur = Number(article.blur) || 0;
   const tags = parseTags(article.tags);
 
-  let imgHtml = '';
-  if (article.cover_image) {
-    imgHtml = `<img src="${article.cover_image}" alt="" style="${blur ? `filter:blur(${blur}px);transform:scale(1.08)` : ''}">`;
-  } else {
-    imgHtml = `<div style="position:absolute;inset:0;background:${gradient}"></div>`;
-  }
+  const imgHtml = article.cover_image
+    ? `<img src="${article.cover_image}" alt="" style="${blur ? `filter:blur(${blur}px);transform:scale(1.08)` : ''}">`
+    : `<div style="position:absolute;inset:0;background:${gradient}"></div>`;
 
   return `
     <a class="article-card${featured ? ' card-featured' : ''}"
-       href="/article.html?slug=${encodeURIComponent(article.slug)}"
-       style="${article.cover_image ? '' : ''}">
+       href="/article.html?slug=${encodeURIComponent(article.slug)}">
       ${imgHtml}
       <div class="card-overlay"></div>
       <div class="card-body">
@@ -74,20 +69,68 @@ async function loadArticles(targetId, limit) {
     let articles = data.articles || [];
     if (limit) articles = articles.slice(0, limit);
     if (!articles.length) {
-      grid.innerHTML = `<p class="empty-state">Aucun article publié pour le moment.</p>`;
+      grid.innerHTML = '<p class="empty-state">Aucun article publié pour le moment.</p>';
       return;
     }
     grid.innerHTML = articles.map((a, i) => articleCardHtml(a, i === 0)).join('');
   } catch (e) {
-    grid.innerHTML = `<p class="empty-state">Impossible de charger les articles.</p>`;
+    grid.innerHTML = '<p class="empty-state">Impossible de charger les articles.</p>';
+    console.error(e);
   }
 }
 
+// ---- Liste d'articles (page Journal) ----
+function articleRowHtml(article) {
+  const tags = parseTags(article.tags);
+  const gradient = GRADIENTS[article.gradient] || GRADIENTS.g1;
+
+  const thumbHtml = article.cover_image
+    ? `<img src="${article.cover_image}" alt="">`
+    : `<div class="article-row-thumb-placeholder" style="background:${gradient}"></div>`;
+
+  return `
+    <a class="article-row-link" href="/article.html?slug=${encodeURIComponent(article.slug)}">
+      <div class="article-row-thumb">${thumbHtml}</div>
+      <div class="article-row-body">
+        <div class="article-row-meta">
+          ${tagsHtml(tags)}
+          <span class="article-row-date">${formatDate(article.published_at)}</span>
+        </div>
+        <div class="article-row-title">${escapeHtml(article.title)}</div>
+        <div class="article-row-excerpt">${escapeHtml(article.excerpt || '')}</div>
+      </div>
+      <div class="article-row-arrow">→</div>
+    </a>
+  `;
+}
+
+async function loadArticlesList(targetId) {
+  const list = document.getElementById(targetId);
+  if (!list) return;
+  list.innerHTML = '';
+  try {
+    const res = await fetch('/api/articles');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    const articles = data.articles || [];
+    if (!articles.length) {
+      list.innerHTML = '<p class="empty-state">Aucun article publié pour le moment.</p>';
+      return;
+    }
+    list.innerHTML = articles.map(articleRowHtml).join('');
+  } catch (e) {
+    list.innerHTML = '<p class="empty-state">Impossible de charger les articles.</p>';
+    console.error(e);
+  }
+}
+
+// ---- Page article ----
 function blockToHtml(block) {
   if (block.type === 'heading') return `<h2>${block.html || ''}</h2>`;
   if (block.type === 'image') {
     if (!block.src) return '';
-    return `<figure><img src="${block.src}" alt="${escapeHtml(block.caption || '')}">
+    return `<figure>
+      <img src="${block.src}" alt="${escapeHtml(block.caption || '')}">
       ${block.caption ? `<figcaption class="helper-text">${escapeHtml(block.caption)}</figcaption>` : ''}
     </figure>`;
   }
@@ -98,7 +141,7 @@ async function loadSingleArticle() {
   const root = document.getElementById('article-root');
   if (!root) return;
   const slug = new URLSearchParams(window.location.search).get('slug');
-  if (!slug) { root.innerHTML = `<p class="empty-state">Article introuvable.</p>`; return; }
+  if (!slug) { root.innerHTML = '<p class="empty-state">Article introuvable.</p>'; return; }
   try {
     const res = await fetch('/api/articles?slug=' + encodeURIComponent(slug));
     const data = await res.json();
@@ -118,6 +161,6 @@ async function loadSingleArticle() {
       <div class="article-body">${content.map(blockToHtml).join('')}</div>
     `;
   } catch {
-    root.innerHTML = `<p class="empty-state">Cet article n'existe pas ou plus.</p>`;
+    root.innerHTML = '<p class="empty-state">Cet article n\'existe pas ou plus.</p>';
   }
 }
