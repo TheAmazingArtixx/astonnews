@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Aston News</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Aller au contenu</a>
+<header class="site-header">
+<a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+  <img src="https://i.imgur.com/6pjRLfE.png" alt="Logo" style="height:110px; border-radius:10px;">
+  <span style="color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.2rem;">Aston News</span>
+</a>
+  <nav class="main-nav">
+    <a href="/">Accueil</a>
+    <a href="/journal.html">Journal</a>
+    <a href="/contact.html" class="active">Contact</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="hero-eyebrow">Nous écrire</div>
+    <h1>Contact</h1>
+    <p>Une question, un partenariat, un signalement ? On te répond rapidement.</p>
+    <div class="hero-divider"></div>
+  </section>
+
+  <section class="contact-wrap">
+    <div class="contact-card" id="contact-form-wrap">
+      <div class="field">
+        <label for="c-name">Nom &amp; Prénom</label>
+        <input type="text" id="c-name" placeholder="Jean Dupont" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="c-contact">Email ou pseudo Discord</label>
+        <input type="text" id="c-contact" placeholder="jean@email.com ou jean#1234" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="c-reason">Raison du contact</label>
+        <div class="reason-grid">
+          <label class="reason-option">
+            <input type="radio" name="reason" value="partenariat">
+            <span>🤝 Partenariat</span>
+          </label>
+          <label class="reason-option">
+            <input type="radio" name="reason" value="presse">
+            <span>📰 Demande de presse</span>
+          </label>
+          <label class="reason-option">
+            <input type="radio" name="reason" value="technique">
+            <span>🔧 Problème technique</span>
+          </label>
+          <label class="reason-option">
+            <input type="radio" name="reason" value="autre">
+            <span>💬 Autre</span>
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="c-message">Message</label>
+        <textarea id="c-message" rows="5" placeholder="Décris ta demande ici…"></textarea>
+      </div>
+      <p class="error-text" id="contact-error" hidden></p>
+      <button class="btn btn-primary" id="contact-send" style="width:100%;justify-content:center;padding:12px;">
+        Envoyer le message
+      </button>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="contact-success" id="contact-success" hidden>
+      <div class="success-icon">✓</div>
+      <h2>Message envoyé !</h2>
+      <p>On a bien reçu ta demande et on te répondra dès que possible.</p>
+      <a href="/" class="btn btn-secondary" style="margin-top:16px;">Retour à l'accueil</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">© Aston News</footer>
+<div id="radio-bar-mount"></div>
+<script src="/js/site.js"></script>
+<script src="/js/radio.js"></script>
+<script>
+document.getElementById('contact-send').addEventListener('click', async () => {
+  const btn = document.getElementById('contact-send');
+  const errEl = document.getElementById('contact-error');
+  const name = document.getElementById('c-name').value.trim();
+  const contact = document.getElementById('c-contact').value.trim();
+  const reason = document.querySelector('input[name="reason"]:checked')?.value || '';
+  const message = document.getElementById('c-message').value.trim();
+
+  errEl.hidden = true;
+  if (!name || !contact || !reason || !message) {
+    errEl.textContent = 'Merci de remplir tous les champs.';
+    errEl.hidden = false;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours…';
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, contact, reason, message }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('contact-form-wrap').hidden = true;
+      document.getElementById('contact-success').hidden = false;
+    } else {
+      errEl.textContent = data.error || 'Une erreur est survenue.';
+      errEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = 'Envoyer le message';
+    }
+  } catch {
+    errEl.textContent = 'Erreur réseau. Réessaie.';
+    errEl.hidden = false;
+    btn.disabled = false;
+    btn.textContent = 'Envoyer le message';
+  }
+});
+</script>
+</body>
+</html>
