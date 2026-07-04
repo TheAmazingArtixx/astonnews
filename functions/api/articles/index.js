@@ -1,166 +1,66 @@
-// ===== Aston News — site public =====
+import { verifySession, jsonResponse } from "../../_utils/auth.js";
 
-const GRADIENTS = {
-  g1: 'linear-gradient(135deg,#1e1640,#0f0c1f)',
-  g2: 'linear-gradient(135deg,#1a2640,#0c1520)',
-  g3: 'linear-gradient(135deg,#261640,#140c20)',
-  g4: 'linear-gradient(135deg,#1f2615,#0c1408)',
-  g5: 'linear-gradient(135deg,#261a10,#150d05)',
-  g6: 'linear-gradient(135deg,#102030,#050e18)',
-};
-
-function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str || '';
-  return d.innerHTML;
+function slugify(str) {
+  return str.toString().toLowerCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "").slice(0, 80);
 }
 
-function formatDate(iso) {
+export async function onRequestGet({ request, env }) {
   try {
-    return new Date(iso.replace(' ', 'T') + 'Z').toLocaleDateString('fr-FR', {
-      day: 'numeric', month: 'long', year: 'numeric'
-    });
-  } catch { return ''; }
-}
-
-function parseTags(raw) {
-  try { return JSON.parse(raw || '[]'); } catch { return []; }
-}
-
-function tagsHtml(tags) {
-  if (!tags || !tags.length) return '';
-  return tags.map(t => `<span class="article-tag">${escapeHtml(t)}</span>`).join('');
-}
-
-// ---- Cartes grille (page d'accueil) ----
-function articleCardHtml(article, featured = false) {
-  const gradient = GRADIENTS[article.gradient] || GRADIENTS.g1;
-  const blur = Number(article.blur) || 0;
-  const tags = parseTags(article.tags);
-
-  const imgHtml = article.cover_image
-    ? `<img src="${article.cover_image}" alt="" style="${blur ? `filter:blur(${blur}px);transform:scale(1.08)` : ''}">`
-    : `<div style="position:absolute;inset:0;background:${gradient}"></div>`;
-
-  return `
-    <a class="article-card${featured ? ' card-featured' : ''}"
-       href="/article.html?slug=${encodeURIComponent(article.slug)}">
-      ${imgHtml}
-      <div class="card-overlay"></div>
-      <div class="card-body">
-        <div class="card-meta">${formatDate(article.published_at)}</div>
-        ${tags.length ? `<div class="card-tags">${tagsHtml(tags)}</div>` : ''}
-        <h3>${escapeHtml(article.title)}</h3>
-        <p>${escapeHtml(article.excerpt || '')}</p>
-        <span class="read-more">Lire l'article →</span>
-      </div>
-    </a>
-  `;
-}
-
-async function loadArticles(targetId, limit) {
-  const grid = document.getElementById(targetId);
-  if (!grid) return;
-  grid.innerHTML = '';
-  try {
-    const res = await fetch('/api/articles');
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error);
-    let articles = data.articles || [];
-    if (limit) articles = articles.slice(0, limit);
-    if (!articles.length) {
-      grid.innerHTML = '<p class="empty-state">Aucun article publié pour le moment.</p>';
-      return;
+    if (!env.DB) {
+      return jsonResponse({ ok: false, error: "Base de données non configurée. Vérifie le binding D1 dans Cloudflare Pages → Settings → Functions." }, 500);
     }
-    grid.innerHTML = articles.map((a, i) => articleCardHtml(a, i === 0)).join('');
-  } catch (e) {
-    grid.innerHTML = '<p class="empty-state">Impossible de charger les articles.</p>';
-    console.error(e);
-  }
-}
 
-// ---- Liste d'articles (page Journal) ----
-function articleRowHtml(article) {
-  const tags = parseTags(article.tags);
-  const gradient = GRADIENTS[article.gradient] || GRADIENTS.g1;
+    const url = new URL(request.url);
+    const slug = url.searchParams.get("slug");
 
-  const thumbHtml = article.cover_image
-    ? `<img src="${article.cover_image}" alt="">`
-    : `<div class="article-row-thumb-placeholder" style="background:${gradient}"></div>`;
-
-  return `
-    <a class="article-row-link" href="/article.html?slug=${encodeURIComponent(article.slug)}">
-      <div class="article-row-thumb">${thumbHtml}</div>
-      <div class="article-row-body">
-        <div class="article-row-meta">
-          ${tagsHtml(tags)}
-          <span class="article-row-date">${formatDate(article.published_at)}</span>
-        </div>
-        <div class="article-row-title">${escapeHtml(article.title)}</div>
-        <div class="article-row-excerpt">${escapeHtml(article.excerpt || '')}</div>
-      </div>
-      <div class="article-row-arrow">→</div>
-    </a>
-  `;
-}
-
-async function loadArticlesList(targetId) {
-  const list = document.getElementById(targetId);
-  if (!list) return;
-  list.innerHTML = '';
-  try {
-    const res = await fetch('/api/articles');
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error);
-    const articles = data.articles || [];
-    if (!articles.length) {
-      list.innerHTML = '<p class="empty-state">Aucun article publié pour le moment.</p>';
-      return;
+    if (slug) {
+      const row = await env.DB.prepare("SELECT * FROM articles WHERE slug = ?").bind(slug).first();
+      if (!row) return jsonResponse({ ok: false, error: "Article introuvable." }, 404);
+      return jsonResponse({ ok: true, article: row });
     }
-    list.innerHTML = articles.map(articleRowHtml).join('');
+
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM articles ORDER BY published_at DESC"
+    ).all();
+
+    return jsonResponse({ ok: true, articles: results });
+
   } catch (e) {
-    list.innerHTML = '<p class="empty-state">Impossible de charger les articles.</p>';
-    console.error(e);
+    return jsonResponse({ ok: false, error: e.message || "Erreur serveur." }, 500);
   }
 }
 
-// ---- Page article ----
-function blockToHtml(block) {
-  if (block.type === 'heading') return `<h2>${block.html || ''}</h2>`;
-  if (block.type === 'image') {
-    if (!block.src) return '';
-    return `<figure>
-      <img src="${block.src}" alt="${escapeHtml(block.caption || '')}">
-      ${block.caption ? `<figcaption class="helper-text">${escapeHtml(block.caption)}</figcaption>` : ''}
-    </figure>`;
-  }
-  return `<p>${block.html || ''}</p>`;
-}
-
-async function loadSingleArticle() {
-  const root = document.getElementById('article-root');
-  if (!root) return;
-  const slug = new URLSearchParams(window.location.search).get('slug');
-  if (!slug) { root.innerHTML = '<p class="empty-state">Article introuvable.</p>'; return; }
+export async function onRequestPost({ request, env }) {
   try {
-    const res = await fetch('/api/articles?slug=' + encodeURIComponent(slug));
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error);
-    const a = data.article;
-    document.title = a.title + ' — Aston News';
-    let content = [];
-    try { content = JSON.parse(a.content || '[]'); } catch {}
-    const tags = parseTags(a.tags);
+    if (!env.DB) return jsonResponse({ ok: false, error: "Base de données non configurée." }, 500);
 
-    root.innerHTML = `
-      <a class="back-link" href="/journal.html">← Retour au journal</a>
-      ${a.cover_image ? `<div class="cover"><img src="${a.cover_image}" alt=""></div>` : ''}
-      ${tags.length ? `<div class="article-tags-row">${tagsHtml(tags)}</div>` : ''}
-      <h1>${escapeHtml(a.title)}</h1>
-      <div class="meta">Publié le ${formatDate(a.published_at)}</div>
-      <div class="article-body">${content.map(blockToHtml).join('')}</div>
-    `;
-  } catch {
-    root.innerHTML = '<p class="empty-state">Cet article n\'existe pas ou plus.</p>';
+    const authed = await verifySession(request, env.SESSION_SECRET);
+    if (!authed) return jsonResponse({ ok: false, error: "Non autorisé." }, 401);
+
+    const data = await request.json().catch(() => null);
+    if (!data || !data.title?.trim()) return jsonResponse({ ok: false, error: "Le titre est requis." }, 400);
+
+    let slug = slugify(data.title);
+    if (!slug) slug = `article-${Date.now().toString(36)}`;
+    const exists = await env.DB.prepare("SELECT id FROM articles WHERE slug = ?").bind(slug).first();
+    if (exists) slug = `${slug}-${Date.now().toString(36)}`;
+
+    const result = await env.DB.prepare(
+      `INSERT INTO articles (slug, title, excerpt, cover_image, content, tags, gradient, blur, published_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+    ).bind(
+      slug, data.title.trim(), data.excerpt || "", data.cover_image || "",
+      JSON.stringify(data.content || []),
+      JSON.stringify(data.tags || []),
+      data.gradient || "g1",
+      Number(data.blur) || 0
+    ).run();
+
+    return jsonResponse({ ok: true, id: result.meta.last_row_id, slug }, 201);
+
+  } catch (e) {
+    return jsonResponse({ ok: false, error: e.message || "Erreur serveur." }, 500);
   }
 }
