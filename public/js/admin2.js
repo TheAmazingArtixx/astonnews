@@ -78,9 +78,20 @@ function enterAdmin() {
   $('nav-username').textContent = `${currentSession.username} · ${currentSession.role === 'gerant' ? 'Gérant' : 'Journaliste'}`;
 
   // Affiche les onglets selon le rôle
+  // Pour un journaliste : supprime carrément les onglets et sections du DOM
   if (currentSession.role === 'gerant') {
     $('tab-radio-btn').style.display = '';
     $('tab-users-btn').style.display = '';
+  } else {
+    // Suppression physique du DOM — pas juste cachés
+    const radioBtn = $('tab-radio-btn');
+    const usersBtn = $('tab-users-btn');
+    const radioSection = $('tab-radio');
+    const usersSection = $('tab-users');
+    if (radioBtn) radioBtn.remove();
+    if (usersBtn) usersBtn.remove();
+    if (radioSection) radioSection.remove();
+    if (usersSection) usersSection.remove();
   }
 
   // Mot de passe temporaire
@@ -138,6 +149,8 @@ async function loadArticles() {
     const d = await r.json();
     const arts = d.articles || [];
     if (!arts.length) { list.innerHTML='<p class="empty-state">Aucun article.</p>'; return; }
+    // Le bouton supprimer n'est généré que pour les gérants
+    // Même si quelqu'un manipule le DOM, le serveur refusera la requête DELETE
     const canDelete = currentSession?.role === 'gerant';
     list.innerHTML = arts.map(a => `
       <div class="article-row">
@@ -354,7 +367,7 @@ async function createUser() {
     const d=await r.json();
     if(d.ok){
       $('new-username').value='';
-      $('temp-pwd-result').hidden=false;
+      show('temp-pwd-result');
       $('temp-pwd-result').innerHTML=`
         <div class="temp-pwd-box">
           <p>Compte <strong>${esc(username)}</strong> créé. Transmets ce mot de passe temporaire à l'utilisateur :</p>
