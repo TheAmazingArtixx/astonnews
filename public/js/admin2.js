@@ -23,8 +23,8 @@ function fmt(iso) {
   catch { return ''; }
 }
 function $(id) { return document.getElementById(id); }
-function show(id) { $(id).hidden = false; }
-function hide(id) { $(id).hidden = true; }
+function show(id) { const el=$(id); if(el){el.hidden=false; el.style.removeProperty('display');} }
+function hide(id) { const el=$(id); if(el){el.hidden=true; el.style.display='none';} }
 function showToast(msg, ok=true) {
   const t=$('toast'); t.textContent=msg;
   t.className='toast'+(ok?' success':'');
@@ -78,9 +78,20 @@ function enterAdmin() {
   $('nav-username').textContent = `${currentSession.username} · ${currentSession.role === 'gerant' ? 'Gérant' : 'Journaliste'}`;
 
   // Affiche les onglets selon le rôle
+  // Pour un journaliste : supprime carrément les onglets et sections du DOM
   if (currentSession.role === 'gerant') {
     $('tab-radio-btn').style.display = '';
     $('tab-users-btn').style.display = '';
+  } else {
+    // Suppression physique du DOM — pas juste cachés
+    const radioBtn = $('tab-radio-btn');
+    const usersBtn = $('tab-users-btn');
+    const radioSection = $('tab-radio');
+    const usersSection = $('tab-users');
+    if (radioBtn) radioBtn.remove();
+    if (usersBtn) usersBtn.remove();
+    if (radioSection) radioSection.remove();
+    if (usersSection) usersSection.remove();
   }
 
   // Mot de passe temporaire
@@ -138,6 +149,8 @@ async function loadArticles() {
     const d = await r.json();
     const arts = d.articles || [];
     if (!arts.length) { list.innerHTML='<p class="empty-state">Aucun article.</p>'; return; }
+    // Le bouton supprimer n'est généré que pour les gérants
+    // Même si quelqu'un manipule le DOM, le serveur refusera la requête DELETE
     const canDelete = currentSession?.role === 'gerant';
     list.innerHTML = arts.map(a => `
       <div class="article-row">
@@ -210,15 +223,6 @@ function addTag() {
   currentTags.push(v); inp.value=''; renderTags();
 }
 function removeTag(i) { currentTags.splice(i,1); renderTags(); }
-
-// Gradient
-function renderGradientPicker() {
-  $('gradient-picker').innerHTML = Object.entries(GRADIENTS).map(([k,v]) => `
-    <button type="button" class="grad-swatch${currentGradient===k?' selected':''}" style="background:${v.css}" title="${v.label}" onclick="selectGradient('${k}')">
-      ${currentGradient===k?'<span class="grad-check">✓</span>':''}
-    </button>`).join('');
-}
-function selectGradient(k) { currentGradient=k; renderGradientPicker(); }
 
 // Blocs
 function renderBlocks() {
@@ -414,7 +418,6 @@ async function changePassword() {
   } catch { showErr('pwd-error','Erreur réseau.'); }
   btn.disabled=false; btn.textContent='Changer le mot de passe';
 }
-
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', async () => {
   setupTabs();
