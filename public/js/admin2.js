@@ -23,8 +23,8 @@ function fmt(iso) {
   catch { return ''; }
 }
 function $(id) { return document.getElementById(id); }
-function show(id) { $(id).hidden = false; }
-function hide(id) { $(id).hidden = true; }
+function show(id) { const el=$(id); if(el){el.hidden=false; el.style.removeProperty('display');} }
+function hide(id) { const el=$(id); if(el){el.hidden=true; el.style.display='none';} }
 function showToast(msg, ok=true) {
   const t=$('toast'); t.textContent=msg;
   t.className='toast'+(ok?' success':'');
