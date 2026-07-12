@@ -120,7 +120,17 @@ function enterAdmin() {
 // ---- Tabs ----
 function showTab(name) {
   ['articles','radio','users','account'].forEach(t => {
-    $(t==='articles'?'tab-articles':`tab-${t}`).hidden = t !== name;
+    const sectionId = t === 'articles' ? 'tab-articles' : `tab-${t}`;
+    const section = $(sectionId);
+    if (section) {
+      if (t === name) {
+        section.hidden = false;
+        section.style.removeProperty('display');
+      } else {
+        section.hidden = true;
+        section.style.display = 'none';
+      }
+    }
     const btn = document.querySelector(`[data-tab="${t}"]`);
     if (btn) btn.classList.toggle('active', t === name);
   });
