@@ -224,6 +224,15 @@ function addTag() {
 }
 function removeTag(i) { currentTags.splice(i,1); renderTags(); }
 
+// Gradient
+function renderGradientPicker() {
+  $('gradient-picker').innerHTML = Object.entries(GRADIENTS).map(([k,v]) => `
+    <button type="button" class="grad-swatch${currentGradient===k?' selected':''}" style="background:${v.css}" title="${v.label}" onclick="selectGradient('${k}')">
+      ${currentGradient===k?'<span class="grad-check">✓</span>':''}
+    </button>`).join('');
+}
+function selectGradient(k) { currentGradient=k; renderGradientPicker(); }
+
 // Blocs
 function renderBlocks() {
   const c = $('blocks-container'); c.innerHTML='';
@@ -358,7 +367,7 @@ async function createUser() {
     const d=await r.json();
     if(d.ok){
       $('new-username').value='';
-      $('temp-pwd-result').hidden=false;
+      show('temp-pwd-result');
       $('temp-pwd-result').innerHTML=`
         <div class="temp-pwd-box">
           <p>Compte <strong>${esc(username)}</strong> créé. Transmets ce mot de passe temporaire à l'utilisateur :</p>
@@ -418,6 +427,7 @@ async function changePassword() {
   } catch { showErr('pwd-error','Erreur réseau.'); }
   btn.disabled=false; btn.textContent='Changer le mot de passe';
 }
+
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', async () => {
   setupTabs();
